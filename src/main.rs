@@ -1,11 +1,15 @@
 mod pos;
 mod lexer;
+mod ast;
+lalrpop_mod!(parser);
 
 use clap::Parser;
 use rustyline::error::ReadlineError;
 use rustyline;
+use lalrpop_util::lalrpop_mod;
 
 use lexer::Lexer;
+use parser::ExprParser;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)] // Read from `Cargo.toml`
@@ -53,7 +57,18 @@ fn main() {
                             }
                         }
                     }
+
+                    println!("\nAST\n===\n");
                 }
+
+                match ExprParser::new().parse(Lexer::new(line.as_str(), None)) {
+                    Ok(expr) => if debug { println!("{}", expr); },
+
+                    Err(err) => {
+                        eprintln!("Parse error: {}", err);
+                        continue
+                    }
+                };
             },
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");

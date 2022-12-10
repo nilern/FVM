@@ -3,8 +3,13 @@ name = "fvm"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+build = "build.rs"
 
 [dependencies]
 clap = { version = "4.0.29", features = ["derive"] }
+lalrpop-util = "0.19.8"
+pretty = "0.11.3"
 rustyline = "10.0.0"
+
+[build-dependencies]
+lalrpop = { version = "0.19.8", default-features = false }
