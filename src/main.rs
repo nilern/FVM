@@ -1,6 +1,11 @@
+mod pos;
+mod lexer;
+
 use clap::Parser;
 use rustyline::error::ReadlineError;
 use rustyline;
+
+use lexer::Lexer;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)] // Read from `Cargo.toml`
@@ -13,7 +18,7 @@ const PROMPT: &'static str = "fvm> ";
 const HISTORY_FILENAME: &'static str = ".fvm-history.txt";
     
 fn main() {
-    println!("{:?}", Args::parse());
+    let Args {debug} = Args::parse();
 
     let mut rl = rustyline::Editor::<()>::new().unwrap();
 
@@ -26,7 +31,29 @@ fn main() {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
 
-                println!("{}", line);
+                if debug {
+                    println!("Tokens\n======\n");
+
+                    for res in Lexer::new(line.as_str(), None) {
+                        match res {
+                            Ok((start, tok, end)) => {
+                                print!("<{:?} in ", tok);
+
+                                match start.filename {
+                                    Some(filename) => print!("{}", filename),
+                                    None => print!("<unknown>")
+                                }
+
+                                println!(" at {}:{}-{}:{}>", start.line, start.col, end.line, end.col);
+                            },
+
+                            Err(err) => {
+                                eprintln!("Lexical error: {}", err);
+                                break;
+                            }
+                        }
+                    }
+                }
             },
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
